@@ -18,8 +18,8 @@ import degToRad = MathUtils.degToRad
 
 const { degToRad: d2r } = MathUtils
 
-const WIDTH = 800
-const HEIGHT = 400
+const WIDTH = 1024
+const HEIGHT = 720
 const FPS = 60
 const FRAME_SIZE = 1000 / FPS
 let lastRenderTime = 0
