@@ -73,11 +73,13 @@ function mainScreen() {
   camera.position.set(0, 0, 2.5)
   camera.rotation.set(d2r(1), d2r(0), d2r(0))
 
+  function update() {
+    cube.rotation.x += 0.0025
+    cube.rotation.y += 0.0015
+  }
+
   return {
-    update: function () {
-      cube.rotation.x += 0.0025
-      cube.rotation.y += 0.0015
-    },
+    update,
     scene,
     camera,
   }
