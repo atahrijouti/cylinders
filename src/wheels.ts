@@ -10,14 +10,11 @@ import {
   MathUtils,
   Renderer,
   Camera,
-  TetrahedronGeometry,
   PointLight,
-  PointLightHelper, DirectionalLightHelper
+  DodecahedronGeometry,
 } from "three"
 import "./wheels.css"
 import degToRad = MathUtils.degToRad
-
-const { degToRad: d2r } = MathUtils
 
 const WIDTH = 1024
 const HEIGHT = 720
@@ -39,13 +36,13 @@ function setupThreeJS() {
   document.getElementById("root")?.appendChild(renderer.domElement)
 
   const screen = mainScreen()
-  requestAnimationFrame(animate(renderer, screen.scene, screen.camera, screen.update))
+  animate(renderer, screen.scene, screen.camera, screen.update)(0)
 }
 
 function animate(renderer: Renderer, scene: Scene, camera: Camera, update: (dt: number) => void) {
   return function (timestamp: number) {
     requestAnimationFrame(animate(renderer, scene, camera, update))
-    update((timestamp - lastRenderTime) / FRAME_SIZE)
+    update((timestamp - lastRenderTime) / 1000)
     renderer.render(scene, camera)
     lastRenderTime = timestamp
   }
@@ -55,8 +52,8 @@ function mainScreen() {
   const scene = new Scene()
   scene.background = new Color(0xdedede)
 
-  const cube = new Mesh(
-    new TetrahedronGeometry(),
+  const subject = new Mesh(
+    new DodecahedronGeometry(),
     new MeshPhongMaterial({
       color: 0x739a73,
       emissive: 0x000000,
@@ -64,9 +61,9 @@ function mainScreen() {
       shininess: 30,
     })
   )
-  cube.position.set(0, 0, 0)
-  cube.rotation.set(d2r(3.5), d2r(20.97), d2r(21.15))
-  scene.add(cube)
+  subject.position.set(0, 0, 0)
+  // subject.rotation.set(d2r(3.5), d2r(20.97), d2r(21.15))
+  scene.add(subject)
 
   const ambient = new AmbientLight(0xfffffff, 0.15)
   scene.add(ambient)
@@ -74,26 +71,25 @@ function mainScreen() {
   const white = new DirectionalLight(0xffffff, 1)
   white.position.set(5, 5, 5)
   scene.add(white)
-  scene.add(new DirectionalLightHelper(white, 1))
 
   const red = new PointLight(0xff0000, 1)
   red.position.set(-5, 5, 0)
   scene.add(red)
-  scene.add(new PointLightHelper(red, 5))
 
   const blue = new PointLight(0x11abff, 1)
   blue.position.set(5, -5, 0)
   scene.add(blue)
-  scene.add(new PointLightHelper(blue, 5))
 
   const camera = new PerspectiveCamera(75, WIDTH / HEIGHT, 0.1, 2000)
   camera.position.set(0, 0, 2.5)
-  camera.rotation.set(d2r(1), d2r(0), d2r(0))
+  // camera.rotation.set(d2r(1), d2r(0), d2r(0))
+  camera.lookAt(subject.position)
 
   function update(dt: number) {
     // console.log(dt)
-    cube.rotation.x += degToRad(1) * dt
-    cube.rotation.y += degToRad(1) * dt
+    // subject.position.x += 0.5 * dt
+    subject.rotation.x += degToRad(15) * dt
+    subject.rotation.y += degToRad(15) * dt
   }
 
   return {
