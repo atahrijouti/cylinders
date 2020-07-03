@@ -84,18 +84,17 @@ function mainScreen(renderer: Renderer) {
   scene.add(new PointLightHelper(blue, 1))
 
   const camera = new PerspectiveCamera(75, WIDTH / HEIGHT, 0.1, 2000)
-  camera.position.set(-1, 3, 3)
-  camera.rotation.set(degToRad(-190), degToRad(0), degToRad(0))
-  // camera.lookAt(new Vector3(0, 0, 0))
-
+  camera.position.set(-5, -.3, 0)
   const controls = new OrbitControls(camera, renderer.domElement)
-  controls.autoRotate = false
+
   // scene.add(new ArrowHelper(new Vector3(1, 0, 0), new Vector3(0, 0, 0), 10, 0xff0000, 0.5, 0.3))
+  // camera.rotation.set(degToRad(0), degToRad(-39), degToRad(0))
+  controls.autoRotate = false
   // scene.add(new ArrowHelper(new Vector3(0, 1, 0), new Vector3(0, 0, 0), 10, 0x00ff00, 0.5, 0.3))
   // scene.add(new ArrowHelper(new Vector3(0, 0, 1), new Vector3(0, 0, 0), 10, 0x0000ff, 0.5, 0.3))
-  scene.add(new AxesHelper(10))
+  scene.add(new AxesHelper(100))
   function update(dt: number) {
-    controls.update()
+    // controls.update()
 
     // subject.position.x += 3 * dt
     subjects.forEach((subject) => (subject.rotation.x += degToRad(15) * dt))
@@ -119,7 +118,9 @@ function createCylinder(segments: number) {
       shininess: 30,
     })
   )
-  mesh.position.set(0, 0, 0)
-  mesh.rotation.set(degToRad(0), degToRad(0), degToRad(90))
+  mesh.position.set(0, 0.5, 0)
+  const angleSum = (segments - 2) * 180
+  const redressAngle = angleSum / segments / 2
+  mesh.rotation.set(degToRad(redressAngle), degToRad(0), degToRad(90))
   return mesh
 }
