@@ -12,6 +12,7 @@ import {
   Camera,
   TetrahedronGeometry,
   PointLight,
+  PointLightHelper, DirectionalLightHelper
 } from "three"
 import "./wheels.css"
 import degToRad = MathUtils.degToRad
@@ -73,14 +74,17 @@ function mainScreen() {
   const white = new DirectionalLight(0xffffff, 1)
   white.position.set(5, 5, 5)
   scene.add(white)
+  scene.add(new DirectionalLightHelper(white, 1))
 
   const red = new PointLight(0xff0000, 1)
   red.position.set(-5, 5, 0)
   scene.add(red)
+  scene.add(new PointLightHelper(red, 5))
 
   const blue = new PointLight(0x11abff, 1)
   blue.position.set(5, -5, 0)
   scene.add(blue)
+  scene.add(new PointLightHelper(blue, 5))
 
   const camera = new PerspectiveCamera(75, WIDTH / HEIGHT, 0.1, 2000)
   camera.position.set(0, 0, 2.5)
