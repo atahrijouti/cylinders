@@ -12,9 +12,12 @@ import {
   Camera,
   PointLight,
   DodecahedronGeometry,
+  Vector3,
+  ArrowHelper,
 } from "three"
 import "./wheels.css"
 import degToRad = MathUtils.degToRad
+import { OrbitControls } from "three/examples/jsm/controls/OrbitControls"
 
 const WIDTH = 1024
 const HEIGHT = 720
@@ -35,7 +38,7 @@ function setupThreeJS() {
 
   document.getElementById("root")?.appendChild(renderer.domElement)
 
-  const screen = mainScreen()
+  const screen = mainScreen(renderer)
   animate(renderer, screen.scene, screen.camera, screen.update)(0)
 }
 
@@ -48,7 +51,7 @@ function animate(renderer: Renderer, scene: Scene, camera: Camera, update: (dt: 
   }
 }
 
-function mainScreen() {
+function mainScreen(renderer: Renderer) {
   const scene = new Scene()
   scene.background = new Color(0xdedede)
 
@@ -81,13 +84,18 @@ function mainScreen() {
   scene.add(blue)
 
   const camera = new PerspectiveCamera(75, WIDTH / HEIGHT, 0.1, 2000)
-  camera.position.set(0, 0, 2.5)
+  camera.position.set(0, 5, 15.5)
   // camera.rotation.set(d2r(1), d2r(0), d2r(0))
   camera.lookAt(subject.position)
 
+  const controls = new OrbitControls(camera, renderer.domElement)
+  scene.add(new ArrowHelper(new Vector3(1, 0, 0), new Vector3(0, 0, 0), 10, 0xff0000, 0.5, 0.3))
+  scene.add(new ArrowHelper(new Vector3(0, 1, 0), new Vector3(0, 0, 0), 10, 0x00ff00, 0.5, 0.3))
+  scene.add(new ArrowHelper(new Vector3(0, 0, 1), new Vector3(0, 0, 0), 10, 0x0000ff, 0.5, 0.3))
+
   function update(dt: number) {
-    // console.log(dt)
-    // subject.position.x += 0.5 * dt
+    controls.update()
+
     subject.rotation.x += degToRad(15) * dt
     subject.rotation.y += degToRad(15) * dt
   }
