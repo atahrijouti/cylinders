@@ -33,111 +33,106 @@ const HEIGHT = 720
 const FPS = 60
 const FRAME_SIZE = 1000 / FPS
 let lastRenderTime = 0
+const FACE_SIZE_3 = 1.732
 
 type Cylinder = {
-  pivot: Group
+  rotationAnchor: Group
+  translationAnchor: Group
   mesh: Mesh
 }
 
-start()
+const subjects = Array.from({ length: 1 }, (_, i) => createCylinder(3))
+// const subjects = Array.from({ length: 12 }, (_, i) => createCylinder(i))
 
-///////////// Functions
-function start() {
-  setupThreeJS()
-}
+const cylinders: Cylinder[] = []
 
-function setupThreeJS() {
-  const renderer = new WebGLRenderer()
-  renderer.setSize(WIDTH, HEIGHT)
+const renderer = new WebGLRenderer()
+renderer.setSize(WIDTH, HEIGHT)
 
-  document.getElementById("root")?.appendChild(renderer.domElement)
+document.getElementById("root")?.appendChild(renderer.domElement)
 
-  const screen = mainScreen(renderer)
-  renderer.render(screen.scene, screen.camera)
-  animate(renderer, screen.scene, screen.camera, screen.update)(0)
-}
+const scene = new Scene()
+scene.background = new Color(0xdedede)
 
-function animate(renderer: Renderer, scene: Scene, camera: Camera, update: (dt: number) => void) {
-  return function (timestamp: number) {
-    requestAnimationFrame(animate(renderer, scene, camera, update))
-    update((timestamp - lastRenderTime) / 1000)
-    renderer.render(scene, camera)
-    lastRenderTime = timestamp
-  }
-}
-
-function mainScreen(renderer: Renderer) {
-  const scene = new Scene()
-  scene.background = new Color(0xdedede)
-
-  const subjects = Array.from({ length: 12 }, (_, i) => createCylinder(i + 2))
-  const cylinders: Cylinder[] = []
-
-  subjects.forEach((mesh, i) => {
-    const segments = i + 2
-    const pivot = new Group()
-    pivot.position.z = i + 0.5 + 0.5 * i
-
-    pivot.add(mesh)
-    pivot.add(new Mesh(new BoxGeometry(0.05, 0.05, 0.05), new MeshBasicMaterial({ color: "red" })))
-    scene.add(pivot)
-    cylinders.push({
-      mesh,
-      pivot,
-    })
+subjects.forEach((mesh, i) => {
+  const segments = mesh.geometry.parameters.radialSegments
+  const redressAnchor = new Group()
+  const angleSum = (segments - 2) * 180
+  const redressAngle = angleSum / segments / 2
+  redressAnchor.rotation.z += degToRad(-redressAngle)
+  redressAnchor.add(mesh)
+  redressAnchor.add(createAnchorMark("red"))
+  const adjustXAnchor = new Group()
+  adjustXAnchor.position.x = FACE_SIZE_3
+  adjustXAnchor.add(redressAnchor)
+  adjustXAnchor.add(createAnchorMark("orange"))
+  const rotationAnchor = new Group()
+  rotationAnchor.add(adjustXAnchor)
+  const translationAnchor = new Group()
+  translationAnchor.add(rotationAnchor)
+  translationAnchor.position.z = i + 0.5 + 0.5 * i
+  scene.add(translationAnchor)
+  cylinders.push({
+    mesh,
+    translationAnchor,
+    rotationAnchor,
   })
+})
 
-  const ambient = new AmbientLight(0xfffffff, 0.15)
-  scene.add(ambient)
+const ambient = new AmbientLight(0xfffffff, 0.15)
+scene.add(ambient)
 
-  const white = new DirectionalLight(0xffffff, 1)
-  white.position.set(5, 5, 5)
-  scene.add(white)
-  scene.add(new DirectionalLightHelper(white))
+const white = new DirectionalLight(0xffffff, 1)
+white.position.set(5, 5, 5)
+scene.add(white)
+scene.add(new DirectionalLightHelper(white))
 
-  const red = new PointLight(0xff0000, 1)
-  red.position.set(-5, 5, 0)
-  scene.add(red)
-  scene.add(new PointLightHelper(red, 1))
+const red = new PointLight(0xff0000, 1)
+red.position.set(-5, 5, 0)
+scene.add(red)
+scene.add(new PointLightHelper(red, 1))
 
-  const blue = new PointLight(0x11abff, 1)
-  blue.position.set(5, 3, 3)
-  scene.add(blue)
-  scene.add(new PointLightHelper(blue, 1))
+const blue = new PointLight(0x11abff, 1)
+blue.position.set(5, 3, 3)
+scene.add(blue)
+scene.add(new PointLightHelper(blue, 1))
 
-  const camera = new PerspectiveCamera(75, WIDTH / HEIGHT, 0.1, 2000)
-  camera.position.set(4.0778, 2.7374, -1.6372)
-  const controls = new OrbitControls(camera, renderer.domElement)
-  controls.target.set(0, 0, 3)
+const camera = new PerspectiveCamera(75, WIDTH / HEIGHT, 0.1, 2000)
+camera.position.set(0.3558, 1.9602, 10.6222)
+const controls = new OrbitControls(camera, renderer.domElement)
+controls.target.set(0, 0, 3)
+controls.update()
+
+// @ts-ignore
+window.camera = camera
+
+scene.add(new AxesHelper(100))
+renderer.render(scene, camera)
+
+requestAnimationFrame(animate)
+
+function animate(timestamp: number) {
+  requestAnimationFrame(animate)
+  update((timestamp - lastRenderTime) / 1000)
+  renderer.render(scene, camera)
+  lastRenderTime = timestamp
+}
+
+function update(dt: number) {
   controls.update()
+  cylinders.forEach((subject) => {
+    if (subject.translationAnchor.position.x < FACE_SIZE_3) {
+      subject.translationAnchor.position.x += (FACE_SIZE_3 * dt) / 2
+    } else {
+      subject.translationAnchor.position.x = 0
+    }
 
-  // @ts-ignore
-  window.camera = camera
-  scene.add(new AxesHelper(100))
-
-  const turn = 180
-  function update(dt: number) {
-    controls.update()
-    cylinders.forEach((subject) => {
-      if (subject.pivot.rotation.z >= degToRad(turn) || subject.pivot.position.x <= -2) {
-        // return
-      }
-      // if (subject.pivot.rotation.z > degToRad(turn) || subject.pivot.position.x < -1) {
-      //   subject.pivot.rotation.z = degToRad(turn)
-      //   subject.pivot.position.x = -1
-      //   return
-      // }
-      // subject.pivot.rotation.z += (degToRad(-turn) * dt) / 20
-      // subject.pivot.position.x += (-2 * dt) / 20
-    })
-    // subject.rotation.y += degToRad(15) * dt
-  }
-
-  return {
-    update,
-    scene,
-    camera,
-  }
+    if (subject.rotationAnchor.rotation.z < degToRad(120)) {
+      subject.rotationAnchor.rotation.z += (degToRad(120) * dt) / 2
+    } else {
+      subject.rotationAnchor.rotation.z = 0
+    }
+  })
 }
 
 function createCylinder(segments: number) {
@@ -150,12 +145,11 @@ function createCylinder(segments: number) {
       shininess: 30,
     })
   )
-    // const angleSum = (segments - 2) * 180
-    // const redressAngle = angleSum / segments
-    //
-    // pivot.rotation.z = degToRad(-90 + redressAngle / 2)
-
-  mesh.position.set(0, 1, 0)
-  mesh.rotation.set(degToRad(90), degToRad(0), degToRad(0))
+  mesh.position.set(-1, 0, 0)
+  mesh.rotation.set(degToRad(90), degToRad(90), degToRad(0))
   return mesh
+}
+
+function createAnchorMark(color: Color | string | number) {
+  return new Mesh(new BoxGeometry(0.05, 0.05, 0.05), new MeshBasicMaterial({ color }))
 }
