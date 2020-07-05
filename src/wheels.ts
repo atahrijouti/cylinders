@@ -27,11 +27,12 @@ const FPS = 60
 const FRAME_SIZE = 1000 / FPS
 let lastRenderTime = 0
 const FACE_SIZE_3 = 1.732
+const FACE_SIZE_4 = 1.417
 
 type Cylinder = {
   rotationAnchor: Group
   translationAnchor: Group
-  mesh: Mesh
+  mesh: Mesh<CylinderGeometry>
 }
 
 const subjects = Array.from({ length: 1 }, (_, i) => createCylinder(3))
@@ -115,14 +116,17 @@ function animate(timestamp: number) {
 function update(dt: number) {
   controls.update()
   cylinders.forEach((subject) => {
+    const segments = subject.mesh.geometry.parameters.radialSegments
+    const angleSum = (segments - 2) * 180
+    const maxAngle = 180 - angleSum / segments
     if (subject.translationAnchor.position.x < FACE_SIZE_3) {
       subject.translationAnchor.position.x += (FACE_SIZE_3 * dt) / 2
     } else {
       subject.translationAnchor.position.x = 0
     }
 
-    if (subject.rotationAnchor.rotation.z < degToRad(120)) {
-      subject.rotationAnchor.rotation.z += (degToRad(120) * dt) / 2
+    if (subject.rotationAnchor.rotation.z < degToRad(maxAngle)) {
+      subject.rotationAnchor.rotation.z += (degToRad(maxAngle) * dt) / 2
     } else {
       subject.rotationAnchor.rotation.z = 0
     }
