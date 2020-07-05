@@ -8,28 +8,21 @@ import {
   Scene,
   WebGLRenderer,
   MathUtils,
-  Renderer,
-  Camera,
   PointLight,
-  DodecahedronGeometry,
-  Vector3,
-  ArrowHelper,
   AxesHelper,
   CylinderGeometry,
   PointLightHelper,
   DirectionalLightHelper,
-  MeshNormalMaterial,
   MeshBasicMaterial,
   Group,
-  PlaneGeometry,
   BoxGeometry,
 } from "three"
 import "./wheels.css"
 import degToRad = MathUtils.degToRad
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls"
 
-const WIDTH = 1024
-const HEIGHT = 720
+const WIDTH = window.innerWidth - 20
+const HEIGHT = window.innerHeight - 20
 const FPS = 60
 const FRAME_SIZE = 1000 / FPS
 let lastRenderTime = 0
@@ -98,7 +91,8 @@ scene.add(blue)
 scene.add(new PointLightHelper(blue, 1))
 
 const camera = new PerspectiveCamera(75, WIDTH / HEIGHT, 0.1, 2000)
-camera.position.set(0.3558, 1.9602, 10.6222)
+camera.position.set(2.399, 2.0666, 5.5067)
+// camera.rotation.set(-0.6894611035490269, 0.6360600923501778, 0.45540354011673284)
 const controls = new OrbitControls(camera, renderer.domElement)
 controls.target.set(0, 0, 3)
 controls.update()
