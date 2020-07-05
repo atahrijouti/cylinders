@@ -18,6 +18,11 @@ import {
   CylinderGeometry,
   PointLightHelper,
   DirectionalLightHelper,
+  MeshNormalMaterial,
+  MeshBasicMaterial,
+  Group,
+  PlaneGeometry,
+  BoxGeometry,
 } from "three"
 import "./wheels.css"
 import degToRad = MathUtils.degToRad
@@ -28,6 +33,11 @@ const HEIGHT = 720
 const FPS = 60
 const FRAME_SIZE = 1000 / FPS
 let lastRenderTime = 0
+
+type Cylinder = {
+  pivot: Group
+  mesh: Mesh
+}
 
 start()
 
@@ -43,6 +53,7 @@ function setupThreeJS() {
   document.getElementById("root")?.appendChild(renderer.domElement)
 
   const screen = mainScreen(renderer)
+  renderer.render(screen.scene, screen.camera)
   animate(renderer, screen.scene, screen.camera, screen.update)(0)
 }
 
@@ -60,9 +71,20 @@ function mainScreen(renderer: Renderer) {
   scene.background = new Color(0xdedede)
 
   const subjects = Array.from({ length: 12 }, (_, i) => createCylinder(i + 2))
-  subjects.forEach((subject, i) => {
-    subject.position.x = i + 0.5 + 0.5 * i
-    scene.add(subject)
+  const cylinders: Cylinder[] = []
+
+  subjects.forEach((mesh, i) => {
+    const segments = i + 2
+    const pivot = new Group()
+    pivot.position.z = i + 0.5 + 0.5 * i
+
+    pivot.add(mesh)
+    pivot.add(new Mesh(new BoxGeometry(0.05, 0.05, 0.05), new MeshBasicMaterial({ color: "red" })))
+    scene.add(pivot)
+    cylinders.push({
+      mesh,
+      pivot,
+    })
   })
 
   const ambient = new AmbientLight(0xfffffff, 0.15)
@@ -84,20 +106,30 @@ function mainScreen(renderer: Renderer) {
   scene.add(new PointLightHelper(blue, 1))
 
   const camera = new PerspectiveCamera(75, WIDTH / HEIGHT, 0.1, 2000)
-  camera.position.set(-5, -.3, 0)
+  camera.position.set(4.0778, 2.7374, -1.6372)
   const controls = new OrbitControls(camera, renderer.domElement)
+  controls.target.set(0, 0, 3)
+  controls.update()
 
-  // scene.add(new ArrowHelper(new Vector3(1, 0, 0), new Vector3(0, 0, 0), 10, 0xff0000, 0.5, 0.3))
-  // camera.rotation.set(degToRad(0), degToRad(-39), degToRad(0))
-  controls.autoRotate = false
-  // scene.add(new ArrowHelper(new Vector3(0, 1, 0), new Vector3(0, 0, 0), 10, 0x00ff00, 0.5, 0.3))
-  // scene.add(new ArrowHelper(new Vector3(0, 0, 1), new Vector3(0, 0, 0), 10, 0x0000ff, 0.5, 0.3))
+  // @ts-ignore
+  window.camera = camera
   scene.add(new AxesHelper(100))
-  function update(dt: number) {
-    // controls.update()
 
-    // subject.position.x += 3 * dt
-    subjects.forEach((subject) => (subject.rotation.x += degToRad(15) * dt))
+  const turn = 180
+  function update(dt: number) {
+    controls.update()
+    cylinders.forEach((subject) => {
+      if (subject.pivot.rotation.z >= degToRad(turn) || subject.pivot.position.x <= -2) {
+        // return
+      }
+      // if (subject.pivot.rotation.z > degToRad(turn) || subject.pivot.position.x < -1) {
+      //   subject.pivot.rotation.z = degToRad(turn)
+      //   subject.pivot.position.x = -1
+      //   return
+      // }
+      // subject.pivot.rotation.z += (degToRad(-turn) * dt) / 20
+      // subject.pivot.position.x += (-2 * dt) / 20
+    })
     // subject.rotation.y += degToRad(15) * dt
   }
 
@@ -118,9 +150,12 @@ function createCylinder(segments: number) {
       shininess: 30,
     })
   )
-  mesh.position.set(0, 0.5, 0)
-  const angleSum = (segments - 2) * 180
-  const redressAngle = angleSum / segments / 2
-  mesh.rotation.set(degToRad(redressAngle), degToRad(0), degToRad(90))
+    // const angleSum = (segments - 2) * 180
+    // const redressAngle = angleSum / segments
+    //
+    // pivot.rotation.z = degToRad(-90 + redressAngle / 2)
+
+  mesh.position.set(0, 1, 0)
+  mesh.rotation.set(degToRad(90), degToRad(0), degToRad(0))
   return mesh
 }
