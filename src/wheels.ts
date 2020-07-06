@@ -8,7 +8,6 @@ import {
   CylinderGeometry,
   MeshBasicMaterial,
   Group,
-  BoxGeometry,
   EdgesGeometry,
   LineSegments,
   LineBasicMaterial,
