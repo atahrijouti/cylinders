@@ -164,7 +164,8 @@ function createCylinder(segments: number) {
   opaqueInner.scale.set(downScale, downScale, downScale)
 
   const edges = new EdgesGeometry(cylinder)
-  const lineMaterial = new LineBasicMaterial({ color: 0xff0000, linewidth: 1 })
+  // neon blue : 0x04d9ff
+  const lineMaterial = new LineBasicMaterial({ color: 0x04d9ff, linewidth: 1 })
   const mesh = new LineSegments(edges, lineMaterial)
   mesh.position.set(0, radius, 0)
   mesh.rotation.set(degToRad(90), degToRad(0), degToRad(0))
