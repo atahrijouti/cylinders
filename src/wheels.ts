@@ -120,13 +120,13 @@ function update(dt: number) {
     const angleSum = (segments - 2) * 180
     const maxAngle = 180 - angleSum / segments
     if (subject.translationAnchor.position.x < FACE_SIZE_3) {
-      subject.translationAnchor.position.x += (FACE_SIZE_3 * dt) / 2
+      subject.translationAnchor.position.x += (FACE_SIZE_3 * dt)
     } else {
       subject.translationAnchor.position.x = 0
     }
 
     if (subject.rotationAnchor.rotation.z < degToRad(maxAngle)) {
-      subject.rotationAnchor.rotation.z += (degToRad(maxAngle) * dt) / 2
+      subject.rotationAnchor.rotation.z += (degToRad(maxAngle) * dt)
     } else {
       subject.rotationAnchor.rotation.z = 0
     }
