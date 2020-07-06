@@ -23,11 +23,9 @@ import { OrbitControls } from "three/examples/jsm/controls/OrbitControls"
 
 const WIDTH = window.innerWidth - 20
 const HEIGHT = window.innerHeight - 20
-const FPS = 60
-const FRAME_SIZE = 1000 / FPS
+// const FPS = 60
+// const FRAME_SIZE = 1000 / FPS
 let lastRenderTime = 0
-const FACE_SIZE_3 = 1.732
-const FACE_SIZE_4 = 1.417
 
 type Cylinder = {
   rotationAnchor: Group
@@ -35,8 +33,7 @@ type Cylinder = {
   mesh: Mesh<CylinderGeometry>
 }
 
-const subjects = Array.from({ length: 1 }, (_, i) => createCylinder(3))
-// const subjects = Array.from({ length: 12 }, (_, i) => createCylinder(i))
+const subjects = Array.from({ length: 12 }, (_, i) => createCylinder(i + 2))
 
 const cylinders: Cylinder[] = []
 
@@ -52,18 +49,22 @@ subjects.forEach((mesh, i) => {
   const segments = mesh.geometry.parameters.radialSegments
   const redressAnchor = new Group()
   const angleSum = (segments - 2) * 180
-  const redressAngle = angleSum / segments / 2
+
+  const redressAngle = 90 - angleSum / segments / 2
   redressAnchor.rotation.z += degToRad(-redressAngle)
   redressAnchor.add(mesh)
-  redressAnchor.add(createAnchorMark("red"))
+
   const adjustXAnchor = new Group()
-  adjustXAnchor.position.x = FACE_SIZE_3
+  adjustXAnchor.position.x = -1
   adjustXAnchor.add(redressAnchor)
-  adjustXAnchor.add(createAnchorMark("orange"))
+
   const rotationAnchor = new Group()
   rotationAnchor.add(adjustXAnchor)
+  rotationAnchor.add(createAnchorMark("orange"))
+
   const translationAnchor = new Group()
   translationAnchor.add(rotationAnchor)
+
   translationAnchor.position.z = i + 0.5 + 0.5 * i
   scene.add(translationAnchor)
   cylinders.push({
@@ -92,7 +93,7 @@ scene.add(blue)
 scene.add(new PointLightHelper(blue, 1))
 
 const camera = new PerspectiveCamera(75, WIDTH / HEIGHT, 0.1, 2000)
-camera.position.set(2.399, 2.0666, 5.5067)
+camera.position.set(-1.8545, 1.4834, -1.4772)
 // camera.rotation.set(-0.6894611035490269, 0.6360600923501778, 0.45540354011673284)
 const controls = new OrbitControls(camera, renderer.domElement)
 controls.target.set(0, 0, 3)
@@ -119,14 +120,14 @@ function update(dt: number) {
     const segments = subject.mesh.geometry.parameters.radialSegments
     const angleSum = (segments - 2) * 180
     const maxAngle = 180 - angleSum / segments
-    if (subject.translationAnchor.position.x < FACE_SIZE_3) {
-      subject.translationAnchor.position.x += (FACE_SIZE_3 * dt)
+    if (subject.translationAnchor.position.x > -1) {
+      subject.translationAnchor.position.x += -1 * dt
     } else {
       subject.translationAnchor.position.x = 0
     }
 
-    if (subject.rotationAnchor.rotation.z < degToRad(maxAngle)) {
-      subject.rotationAnchor.rotation.z += (degToRad(maxAngle) * dt)
+    if (subject.rotationAnchor.rotation.z > -degToRad(maxAngle)) {
+      subject.rotationAnchor.rotation.z -= degToRad(maxAngle) * dt
     } else {
       subject.rotationAnchor.rotation.z = 0
     }
@@ -134,8 +135,9 @@ function update(dt: number) {
 }
 
 function createCylinder(segments: number) {
+  const radius = 0.5 / Math.sin(Math.PI / segments)
   const mesh = new Mesh(
-    new CylinderGeometry(1, 1, 1, segments),
+    new CylinderGeometry(radius, radius, 1, segments),
     new MeshPhongMaterial({
       color: 0x739a73,
       emissive: 0x000000,
@@ -143,8 +145,8 @@ function createCylinder(segments: number) {
       shininess: 30,
     })
   )
-  mesh.position.set(-1, 0, 0)
-  mesh.rotation.set(degToRad(90), degToRad(90), degToRad(0))
+  mesh.position.set(0, radius, 0)
+  mesh.rotation.set(degToRad(90), degToRad(0), degToRad(0))
   return mesh
 }
 
