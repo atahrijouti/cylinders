@@ -1,25 +1,29 @@
 import {
-  AmbientLight,
   Color,
-  DirectionalLight,
   Mesh,
-  MeshPhongMaterial,
   PerspectiveCamera,
   Scene,
   WebGLRenderer,
   MathUtils,
-  PointLight,
-  AxesHelper,
   CylinderGeometry,
-  PointLightHelper,
-  DirectionalLightHelper,
   MeshBasicMaterial,
   Group,
   BoxGeometry,
+  EdgesGeometry,
+  LineSegments,
+  LineBasicMaterial,
+  LinearToneMapping,
+  Vector2,
 } from "three"
 import "./wheels.css"
 import degToRad = MathUtils.degToRad
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls"
+import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass"
+import { ShaderPass } from "three/examples/jsm/postprocessing/ShaderPass"
+import { FXAAShader } from "three/examples/jsm/shaders/FXAAShader"
+import { CopyShader } from "three/examples/jsm/shaders/CopyShader"
+import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass"
+import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer"
 
 const WIDTH = window.innerWidth - 20
 const HEIGHT = window.innerHeight - 20
@@ -30,23 +34,32 @@ let lastRenderTime = 0
 type Cylinder = {
   rotationAnchor: Group
   translationAnchor: Group
-  mesh: Mesh<CylinderGeometry>
+  mesh: LineSegments
+  segments: number
 }
-
-const subjects = Array.from({ length: 12 }, (_, i) => createCylinder(i + 2))
-
-const cylinders: Cylinder[] = []
 
 const renderer = new WebGLRenderer()
 renderer.setSize(WIDTH, HEIGHT)
+renderer.toneMapping = LinearToneMapping
+renderer.setClearColor(0x161728, 0.0)
 
 document.getElementById("root")?.appendChild(renderer.domElement)
 
-const scene = new Scene()
-scene.background = new Color(0xdedede)
+const subjects = Array.from({ length: 20 }, (_, i) => {
+  const segments = i + 2
 
-subjects.forEach((mesh, i) => {
-  const segments = mesh.geometry.parameters.radialSegments
+  return {
+    mesh: createCylinder(segments),
+    segments,
+  }
+})
+
+const cylinders: Cylinder[] = []
+
+const scene = new Scene()
+scene.background = new Color("black")
+
+subjects.forEach(({ mesh, segments }, i) => {
   const redressAnchor = new Group()
   const angleSum = (segments - 2) * 180
 
@@ -60,37 +73,19 @@ subjects.forEach((mesh, i) => {
 
   const rotationAnchor = new Group()
   rotationAnchor.add(adjustXAnchor)
-  rotationAnchor.add(createAnchorMark("orange"))
 
   const translationAnchor = new Group()
   translationAnchor.add(rotationAnchor)
 
-  translationAnchor.position.z = i + 0.5 + 0.5 * i
+  translationAnchor.position.z = i
   scene.add(translationAnchor)
   cylinders.push({
+    segments,
     mesh,
     translationAnchor,
     rotationAnchor,
   })
 })
-
-const ambient = new AmbientLight(0xfffffff, 0.15)
-scene.add(ambient)
-
-const white = new DirectionalLight(0xffffff, 1)
-white.position.set(5, 5, 5)
-scene.add(white)
-scene.add(new DirectionalLightHelper(white))
-
-const red = new PointLight(0xff0000, 1)
-red.position.set(-5, 5, 0)
-scene.add(red)
-scene.add(new PointLightHelper(red, 1))
-
-const blue = new PointLight(0x11abff, 1)
-blue.position.set(5, 3, 3)
-scene.add(blue)
-scene.add(new PointLightHelper(blue, 1))
 
 const camera = new PerspectiveCamera(75, WIDTH / HEIGHT, 0.1, 2000)
 camera.position.set(-1.8545, 1.4834, -1.4772)
@@ -102,54 +97,80 @@ controls.update()
 // @ts-ignore
 window.camera = camera
 
-scene.add(new AxesHelper(100))
-renderer.render(scene, camera)
+// scene.add(new AxesHelper(100))
+const renderScene = new RenderPass(scene, camera)
+
+const effectFXAA = new ShaderPass(FXAAShader)
+effectFXAA.uniforms["resolution"].value.set(1 / window.innerWidth, 1 / window.innerHeight)
+
+const copyShader = new ShaderPass(CopyShader)
+copyShader.renderToScreen = true
+
+const BLOOM_STRENGTH = 0.4
+const BLOOM_RADIUS = 0.2
+const BLOOM_TREASHOLD = 0.1
+const bloomPass = new UnrealBloomPass(
+  new Vector2(window.innerWidth, window.innerHeight),
+  BLOOM_STRENGTH,
+  BLOOM_RADIUS,
+  BLOOM_TREASHOLD
+)
+
+const composer = new EffectComposer(renderer)
+
+composer.setSize(window.innerWidth, window.innerHeight)
+composer.addPass(renderScene)
+composer.addPass(effectFXAA)
+
+composer.addPass(bloomPass)
+composer.addPass(copyShader)
 
 requestAnimationFrame(animate)
 
 function animate(timestamp: number) {
   requestAnimationFrame(animate)
   update((timestamp - lastRenderTime) / 1000)
-  renderer.render(scene, camera)
+  // renderer.render(scene, camera)
+  composer.render()
   lastRenderTime = timestamp
 }
 
 function update(dt: number) {
   controls.update()
-  cylinders.forEach((subject) => {
-    const segments = subject.mesh.geometry.parameters.radialSegments
+  cylinders.forEach(({ segments, translationAnchor, rotationAnchor }) => {
     const angleSum = (segments - 2) * 180
     const maxAngle = 180 - angleSum / segments
-    if (subject.translationAnchor.position.x > -1) {
-      subject.translationAnchor.position.x += -1 * dt
+    if (translationAnchor.position.x > -1) {
+      translationAnchor.position.x += -1 * dt
     } else {
-      subject.translationAnchor.position.x = 0
+      translationAnchor.position.x = 0
     }
 
-    if (subject.rotationAnchor.rotation.z > -degToRad(maxAngle)) {
-      subject.rotationAnchor.rotation.z -= degToRad(maxAngle) * dt
+    if (rotationAnchor.rotation.z > -degToRad(maxAngle)) {
+      rotationAnchor.rotation.z -= degToRad(maxAngle) * dt
     } else {
-      subject.rotationAnchor.rotation.z = 0
+      rotationAnchor.rotation.z = 0
     }
   })
 }
 
 function createCylinder(segments: number) {
   const radius = 0.5 / Math.sin(Math.PI / segments)
-  const mesh = new Mesh(
-    new CylinderGeometry(radius, radius, 1, segments),
-    new MeshPhongMaterial({
-      color: 0x739a73,
-      emissive: 0x000000,
-      specular: 0x111111,
-      shininess: 30,
-    })
-  )
+  const cylinder = new CylinderGeometry(radius, radius, 0.5, segments)
+
+  // inner
+  const opaqueMaterial = new MeshBasicMaterial({ color: "black" })
+  const opaqueInner = new Mesh(cylinder, opaqueMaterial)
+  const downScale = 0.9876
+  opaqueInner.scale.set(downScale, downScale, downScale)
+
+  const edges = new EdgesGeometry(cylinder)
+  const lineMaterial = new LineBasicMaterial({ color: 0xff0000, linewidth: 1 })
+  const mesh = new LineSegments(edges, lineMaterial)
   mesh.position.set(0, radius, 0)
   mesh.rotation.set(degToRad(90), degToRad(0), degToRad(0))
-  return mesh
-}
 
-function createAnchorMark(color: Color | string | number) {
-  return new Mesh(new BoxGeometry(0.05, 0.05, 0.05), new MeshBasicMaterial({ color }))
+  mesh.add(opaqueInner)
+
+  return mesh
 }
