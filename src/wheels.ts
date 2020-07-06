@@ -44,7 +44,7 @@ renderer.setClearColor(0x161728, 0.0)
 
 document.getElementById("root")?.appendChild(renderer.domElement)
 
-const subjects = Array.from({ length: 20 }, (_, i) => {
+const subjects = Array.from({ length: 25 }, (_, i) => {
   const segments = i + 2
 
   return {
@@ -87,7 +87,7 @@ subjects.forEach(({ mesh, segments }, i) => {
 })
 
 const camera = new PerspectiveCamera(75, WIDTH / HEIGHT, 0.1, 2000)
-camera.position.set(-1.8545, 1.4834, -1.4772)
+camera.position.set(-6.0024, 2.5768, -1.1391)
 // camera.rotation.set(-0.6894611035490269, 0.6360600923501778, 0.45540354011673284)
 const controls = new OrbitControls(camera, renderer.domElement)
 controls.target.set(0, 0, 3)
