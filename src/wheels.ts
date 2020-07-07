@@ -44,7 +44,7 @@ renderer.setClearColor(0x161728, 0.0)
 
 document.getElementById("root")?.appendChild(renderer.domElement)
 
-const subjects = Array.from({ length: 25 }, (_, i) => {
+const subjects = Array.from({ length: 40 }, (_, i) => {
   const segments = i + 2
 
   return {
@@ -76,7 +76,7 @@ subjects.forEach(({ mesh, segments }, i) => {
   const translationAnchor = new Group()
   translationAnchor.add(rotationAnchor)
 
-  translationAnchor.position.z = i
+  translationAnchor.position.z = i * 0.8
   scene.add(translationAnchor)
   cylinders.push({
     segments,
@@ -86,28 +86,26 @@ subjects.forEach(({ mesh, segments }, i) => {
   })
 })
 
-const camera = new PerspectiveCamera(75, WIDTH / HEIGHT, 0.1, 2000)
-camera.position.set(-6.0024, 2.5768, -1.1391)
-// camera.rotation.set(-0.6894611035490269, 0.6360600923501778, 0.45540354011673284)
+const camera = new PerspectiveCamera(25, WIDTH / HEIGHT, 0.01, 2000)
+camera.position.set(-20, 20, -10)
+
 const controls = new OrbitControls(camera, renderer.domElement)
-controls.target.set(0, 0, 3)
 controls.update()
 
 // @ts-ignore
-window.camera = camera
+window.controls = controls
 
-// scene.add(new AxesHelper(100))
 const renderScene = new RenderPass(scene, camera)
 
 const effectFXAA = new ShaderPass(FXAAShader)
-effectFXAA.uniforms["resolution"].value.set(1 / window.innerWidth, 1 / window.innerHeight)
+effectFXAA.uniforms["resolution"].value.set(0, 0)
 
 const copyShader = new ShaderPass(CopyShader)
 copyShader.renderToScreen = true
 
-const BLOOM_STRENGTH = 0.4
-const BLOOM_RADIUS = 0.2
-const BLOOM_TREASHOLD = 0.1
+const BLOOM_STRENGTH = 0.1
+const BLOOM_RADIUS = 0
+const BLOOM_TREASHOLD = 0
 const bloomPass = new UnrealBloomPass(
   new Vector2(window.innerWidth, window.innerHeight),
   BLOOM_STRENGTH,
@@ -151,6 +149,13 @@ function update(dt: number) {
       rotationAnchor.rotation.z = 0
     }
   })
+
+  if (controls.target.y < 0.65) {
+    controls.target.y += 0.55 * dt
+  }
+  if (controls.target.z < 3.3) {
+    controls.target.z += 2.2 * dt
+  }
 }
 
 function createCylinder(segments: number) {
@@ -158,9 +163,9 @@ function createCylinder(segments: number) {
   const cylinder = new CylinderGeometry(radius, radius, 0.5, segments)
 
   // inner
-  const opaqueMaterial = new MeshBasicMaterial({ color: "black" })
+  const opaqueMaterial = new MeshBasicMaterial({ color: 0x000204 })
   const opaqueInner = new Mesh(cylinder, opaqueMaterial)
-  const downScale = 0.9876
+  const downScale = 0.99876
   opaqueInner.scale.set(downScale, downScale, downScale)
 
   const edges = new EdgesGeometry(cylinder)
