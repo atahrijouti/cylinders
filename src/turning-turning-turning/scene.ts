@@ -13,29 +13,28 @@ import {
 } from "three"
 import degToRad = MathUtils.degToRad
 
-type Cylinder = {
-  rotationAnchor: Group
-  translationAnchor: Group
-  mesh: LineSegments
-  segments: number
-}
-
 export const WIDTH = window.innerWidth - 20
 export const HEIGHT = window.innerHeight - 20
 
+const cylinderScale = 0.5
+const opaqueColor = 0x000810
+const opaqueShapeDownScale = 0.9899
+const lineColor = 0x04d9ff
+const carpetLength = 6
+
 function createCylinder(segments: number) {
   const radius = 0.5 / Math.sin(Math.PI / segments)
-  const cylinder = new CylinderGeometry(radius, radius, 0.5, segments)
+  const cylinder = new CylinderGeometry(radius, radius, cylinderScale, segments)
 
   // inner
-  const opaqueMaterial = new MeshBasicMaterial({ color: 0x000810 })
+  const opaqueMaterial = new MeshBasicMaterial({ color: opaqueColor })
   const opaqueInner = new Mesh(cylinder, opaqueMaterial)
-  const downScale = 0.9899
-  opaqueInner.scale.set(downScale, downScale, downScale)
+
+  opaqueInner.scale.set(opaqueShapeDownScale, opaqueShapeDownScale, opaqueShapeDownScale)
 
   const edges = new EdgesGeometry(cylinder)
-  // neon blue : 0x04d9ff
-  const lineMaterial = new LineBasicMaterial({ color: 0x04d9ff, linewidth: 1 })
+
+  const lineMaterial = new LineBasicMaterial({ color: lineColor, linewidth: 1 })
   const mesh = new LineSegments(edges, lineMaterial)
   mesh.position.set(0, radius, 0)
   mesh.rotation.set(degToRad(90), degToRad(0), degToRad(0))
@@ -43,6 +42,21 @@ function createCylinder(segments: number) {
   mesh.add(opaqueInner)
 
   return mesh
+}
+
+function createCarpet() {
+  const group = new Group()
+  const carpet = createCylinder(2)
+  carpet.rotation.set(degToRad(90), degToRad(90), 0)
+  carpet.position.set(-0.5, 0, 0)
+
+  Array.from({ length: carpetLength }, (_, i) => {
+    const piece = carpet.clone()
+    piece.position.set(-0.5 - i, 0, 0)
+    group.add(piece)
+  })
+
+  return group
 }
 
 const subjects = Array.from({ length: 12 }, (_, i) => {
@@ -54,12 +68,10 @@ const subjects = Array.from({ length: 12 }, (_, i) => {
   }
 })
 
-export const cylinders: Cylinder[] = []
-
 export const scene = new Scene()
 scene.background = new Color("black")
 
-subjects.forEach(({ mesh, segments }, i) => {
+export const cylinders = subjects.map(({ mesh, segments }, i) => {
   const redressAnchor = new Group()
   const angleSum = (segments - 2) * 180
 
@@ -74,17 +86,26 @@ subjects.forEach(({ mesh, segments }, i) => {
   const rotationAnchor = new Group()
   rotationAnchor.add(adjustXAnchor)
 
+  const mirrorAnchor = rotationAnchor.clone()
+
+  mirrorAnchor.position.x = -carpetLength
+  mirrorAnchor.scale.y = -1
+
   const translationAnchor = new Group()
   translationAnchor.add(rotationAnchor)
+  translationAnchor.add(mirrorAnchor)
+
+  translationAnchor.add(createCarpet())
 
   translationAnchor.position.z = i * 0.8
   scene.add(translationAnchor)
-  cylinders.push({
+  return {
     segments,
     mesh,
     translationAnchor,
     rotationAnchor,
-  })
+    mirrorAnchor,
+  }
 })
 
 export const camera = new PerspectiveCamera(25, WIDTH / HEIGHT, 0.01, 2000)

@@ -16,7 +16,9 @@ renderer.toneMapping = LinearToneMapping
 document.getElementById("root")?.appendChild(renderer.domElement)
 
 const controls = new OrbitControls(camera, renderer.domElement)
-controls.target.set(-1.105025572705715, 0.6863194969200815, 2.9016811095680737)
+controls.target.set(-3.775204652519579, 0.3087698538850295, 5.004885808378567)
+camera.position.set(22.091156549785985, 7.2045658505803924, -20.67928863075092)
+
 // @ts-ignore
 window.controls = controls
 // @ts-ignore
@@ -24,7 +26,7 @@ window.camera = camera
 
 function update(dt: number) {
   controls.update()
-  cylinders.forEach(({ segments, translationAnchor, rotationAnchor }) => {
+  cylinders.forEach(({ segments, translationAnchor, rotationAnchor, mirrorAnchor }) => {
     const angleSum = (segments - 2) * 180
     const maxAngle = 180 - angleSum / segments
     if (translationAnchor.position.x > -1) {
@@ -33,10 +35,15 @@ function update(dt: number) {
       translationAnchor.position.x = 0
     }
 
+    if (mirrorAnchor.rotation.z < degToRad(maxAngle)) {
+      mirrorAnchor.rotation.z += degToRad(maxAngle) * dt
+    }
+
     if (rotationAnchor.rotation.z > -degToRad(maxAngle)) {
       rotationAnchor.rotation.z -= degToRad(maxAngle) * dt
     } else {
       rotationAnchor.rotation.z = 0
+      mirrorAnchor.rotation.z = 0
     }
   })
 }
