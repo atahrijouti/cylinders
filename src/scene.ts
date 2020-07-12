@@ -18,15 +18,24 @@ import { LineMaterial } from "three/examples/jsm/lines/LineMaterial"
 export const WIDTH = window.innerWidth - 20
 export const HEIGHT = window.innerHeight - 20
 
+export const MAX_CYLINDER_COUNT = 100
 const cylinderScale = 0.5
 const opaqueColor = 0x000010
 const opaqueShapeDownScale = 0.9899
 const lineColor = 0x04d9ff
 const carpetLength = 6
 
+export const lineMaterial = new LineMaterial({
+  color: lineColor,
+  linewidth: 2,
+  side: DoubleSide,
+})
+
 function createCylinder(segments: number) {
   const radius = 0.5 / Math.sin(Math.PI / segments)
   const cylinder = new CylinderGeometry(radius, radius, cylinderScale, segments)
+  const edges = new EdgesGeometry(cylinder)
+  const lineGeometry = new LineSegmentsGeometry()
 
   // inner
   const opaqueMaterial = new MeshBasicMaterial({ color: opaqueColor })
@@ -34,14 +43,6 @@ function createCylinder(segments: number) {
 
   opaqueInner.scale.set(opaqueShapeDownScale, opaqueShapeDownScale, opaqueShapeDownScale)
 
-  const edges = new EdgesGeometry(cylinder)
-  const lineGeometry = new LineSegmentsGeometry()
-
-  const lineMaterial = new LineMaterial({
-    color: lineColor,
-    linewidth: 2,
-    side: DoubleSide,
-  })
   lineMaterial.resolution.set(WIDTH, HEIGHT)
   const mesh = new LineSegments2(lineGeometry.fromEdgesGeometry(edges), lineMaterial)
   mesh.position.set(0, radius, 0)
@@ -67,7 +68,7 @@ function createCarpet() {
   return group
 }
 
-const subjects = Array.from({ length: 32 }, (_, i) => {
+const subjects = Array.from({ length: MAX_CYLINDER_COUNT }, (_, i) => {
   const segments = i + 2
 
   return {

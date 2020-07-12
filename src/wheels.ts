@@ -1,14 +1,19 @@
 import { WebGLRenderer, MathUtils, LinearToneMapping, Vector2 } from "three"
-import "./wheels.css"
-import degToRad = MathUtils.degToRad
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls"
-import { camera, cylinders, HEIGHT, scene, WIDTH } from "~turning-turning-turning/scene"
+import { camera, cylinders, HEIGHT, lineMaterial, MAX_CYLINDER_COUNT, scene, WIDTH } from "~scene"
+
+// @ts-ignore
+import { GUI } from "three/examples/jsm/libs/dat.gui.module"
+import Stats from "three/examples/jsm/libs/stats.module"
+
 import { ShaderPass } from "three/examples/jsm/postprocessing/ShaderPass"
 import { FXAAShader } from "three/examples/jsm/shaders/FXAAShader"
 import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass"
 import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass"
 import { CopyShader } from "three/examples/jsm/shaders/CopyShader"
 import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer"
+import "./wheels.css"
+import degToRad = MathUtils.degToRad
 
 let lastRenderTime = 0
 
@@ -50,13 +55,41 @@ composer.addPass(bloomPass)
 composer.addPass(copyShader)
 
 // @ts-ignore
+const stats = new Stats()
+document.body.append(stats.dom)
+
+const gui = new GUI()
+const params = {
+  cylinderCount: 12,
+  autoRotate: false,
+  lineColor: lineMaterial.color.getHex(),
+}
+gui.add(params, "cylinderCount", 1, MAX_CYLINDER_COUNT).name("Cylinder Count")
+
+gui
+  .add(params, "autoRotate", 1, MAX_CYLINDER_COUNT)
+  .name("Auto Rotate")
+  .onChange((value: boolean) => {
+    controls.autoRotate = value
+  })
+gui
+  .addColor(params, "lineColor")
+  .name("Line Color")
+  .onChange((value: number) => {
+    lineMaterial.color.set(value)
+  })
+
+// @ts-ignore
 window.controls = controls
 // @ts-ignore
 window.camera = camera
 
 function update(dt: number) {
+  controls.autoRotate = params.autoRotate
   controls.update()
-  cylinders.forEach(({ segments, translationAnchor, rotationAnchor, mirrorAnchor }) => {
+  cylinders.forEach(({ segments, translationAnchor, rotationAnchor, mirrorAnchor }, i) => {
+    translationAnchor.visible = params.cylinderCount > i
+
     const angleSum = (segments - 2) * 180
     const maxAngle = 180 - angleSum / segments
     if (translationAnchor.position.x > -1) {
@@ -86,4 +119,5 @@ function animate(timestamp: number) {
   // renderer.render(scene, camera)
   composer.render()
   lastRenderTime = timestamp
+  stats.update()
 }
