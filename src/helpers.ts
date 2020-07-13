@@ -1,4 +1,5 @@
 import { LineMaterial } from "three/examples/jsm/lines/LineMaterial"
+import { carpetLength, cylinders } from "~scene"
 
 export class ColorGUIHelper {
   lineMaterial: LineMaterial
@@ -12,5 +13,14 @@ export class ColorGUIHelper {
   }
   set value(hexString) {
     this.lineMaterial.color.set(hexString)
+  }
+}
+
+export function computeCenter(count: number) {
+  const cylinder = cylinders[(count / 2) | 0]
+  console.log(-carpetLength / 2)
+  return {
+    z: cylinder.translationAnchor.position.z,
+    x: -carpetLength / 2,
   }
 }

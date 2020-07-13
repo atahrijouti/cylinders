@@ -19,11 +19,11 @@ export const WIDTH = window.innerWidth - 20
 export const HEIGHT = window.innerHeight - 20
 
 export const MAX_CYLINDER_COUNT = 100
-const cylinderScale = 0.5
+export const cylinderScale = 0.5
 const opaqueColor = 0x000010
 const opaqueShapeDownScale = 0.9899
 const lineColor = 0x04d9ff
-const carpetLength = 6
+export const carpetLength = 10
 
 export const lineMaterial = new LineMaterial({
   color: lineColor,
@@ -104,13 +104,14 @@ export const cylinders = subjects.map(({ mesh, segments }, i) => {
   translationAnchor.add(rotationAnchor)
   translationAnchor.add(mirrorAnchor)
 
-  translationAnchor.add(createCarpet())
+  const carpet = createCarpet()
+  translationAnchor.add(carpet)
 
-  translationAnchor.position.z = i * 0.8
-  scene.add(translationAnchor)
+  translationAnchor.position.z = i * 0.5123
   return {
     segments,
     mesh,
+    carpet,
     translationAnchor,
     rotationAnchor,
     mirrorAnchor,

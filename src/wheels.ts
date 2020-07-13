@@ -1,4 +1,4 @@
-import { WebGLRenderer, MathUtils, LinearToneMapping, Vector2 } from "three"
+import { WebGLRenderer, MathUtils, LinearToneMapping, Vector2, Vector3 } from "three"
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls"
 import { camera, cylinders, HEIGHT, lineMaterial, MAX_CYLINDER_COUNT, scene, WIDTH } from "~scene"
 
@@ -14,6 +14,7 @@ import { CopyShader } from "three/examples/jsm/shaders/CopyShader"
 import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer"
 import "./wheels.css"
 import degToRad = MathUtils.degToRad
+import { computeCenter } from "~helpers"
 
 let lastRenderTime = 0
 
@@ -24,9 +25,6 @@ renderer.toneMapping = LinearToneMapping
 document.getElementById("root")?.appendChild(renderer.domElement)
 
 const controls = new OrbitControls(camera, renderer.domElement)
-
-camera.position.set(-22.208293437428836, 10.270162712272544, -11.61609833147186)
-controls.target.set(-5.578896393260554, 1.0585894656016226, 7.936555935612902)
 
 const renderScene = new RenderPass(scene, camera)
 
@@ -79,13 +77,15 @@ gui
     lineMaterial.color.set(value)
   })
 
+camera.position.set(-15, 15, -15)
+lookAtCenter()
+
 // @ts-ignore
 window.controls = controls
 // @ts-ignore
 window.camera = camera
 
 function update(dt: number) {
-  controls.autoRotate = params.autoRotate
   controls.update()
   cylinders.forEach(({ segments, translationAnchor, rotationAnchor, mirrorAnchor }, i) => {
     translationAnchor.visible = params.cylinderCount > i
@@ -120,4 +120,9 @@ function animate(timestamp: number) {
   composer.render()
   lastRenderTime = timestamp
   stats.update()
+}
+
+function lookAtCenter() {
+  const center = computeCenter(params.cylinderCount)
+  controls.target.copy(new Vector3(center.x, 0, center.z))
 }
