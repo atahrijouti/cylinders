@@ -1,15 +1,22 @@
-import { WebGLRenderer } from "three"
-import { HEIGHT, WIDTH } from "./config"
-import { TreadmillScene } from "./scene"
+import { type Metadata } from "unbundle"
 
-const renderThree = () => {
+import { WebGLRenderer } from "three"
+import { HEIGHT, WIDTH } from "./config.js"
+import { TreadmillScene } from "./scene.js"
+
+export const metadata: Metadata = {
+  title: "Cylinders",
+  description: "Tumbling cylinders, even when it looks like a triangle",
+}
+
+export const ready = () => {
   const treadmillScene = new TreadmillScene()
 
   const renderer = new WebGLRenderer()
   renderer.setSize(WIDTH, HEIGHT)
 
   const root = document.getElementById("root")
-  root.appendChild(renderer.domElement)
+  root?.appendChild(renderer.domElement)
 
   let lastRenderTime = 0
   function animate(timestamp: number) {
@@ -25,4 +32,6 @@ const renderThree = () => {
   requestAnimationFrame(animate)
 }
 
-document.addEventListener("DOMContentLoaded", renderThree)
+export const content = () => {
+  return ""
+}

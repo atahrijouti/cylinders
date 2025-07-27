@@ -1,4 +1,16 @@
 import {
+  CylinderGeometry,
+  DoubleSide,
+  EdgesGeometry,
+  Group,
+  Mesh,
+  MeshBasicMaterial,
+  MathUtils,
+} from "three"
+import { LineMaterial } from "three/addons/lines/LineMaterial.js"
+import { LineSegments2 } from "three/addons/lines/LineSegments2.js"
+import { LineSegmentsGeometry } from "three/addons/lines/LineSegmentsGeometry.js"
+import {
   CARPET_LENGTH,
   CYLINDER_SCALE,
   HEIGHT,
@@ -6,12 +18,9 @@ import {
   OPAQUE_COLOR,
   OPAQUE_SHAPE_DOWN_SCALE,
   WIDTH,
-} from "./config"
-import { CylinderGeometry, DoubleSide, EdgesGeometry, Group, Mesh, MeshBasicMaterial } from "three"
-import { LineSegmentsGeometry } from "three/examples/jsm/lines/LineSegmentsGeometry"
-import { LineSegments2 } from "three/examples/jsm/lines/LineSegments2"
-import { degToRad } from "three/src/math/MathUtils"
-import { LineMaterial } from "three/examples/jsm/lines/LineMaterial"
+} from "./config.js"
+
+const { degToRad } = MathUtils
 
 export const createCylinder = (segments: number) => {
   const radius = 0.5 / Math.sin(Math.PI / segments)

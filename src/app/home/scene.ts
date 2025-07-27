@@ -1,6 +1,6 @@
 import { PerspectiveCamera, Scene, Vector3 } from "three"
-import { CARPET_LENGTH, HEIGHT, MAX_CYLINDER_COUNT, WIDTH } from "./config"
-import { Treadmill } from "./treadmill"
+import { CARPET_LENGTH, HEIGHT, MAX_CYLINDER_COUNT, WIDTH } from "./config.js"
+import { Treadmill } from "./treadmill.js"
 
 export class TreadmillScene extends Scene {
   cylinders: Treadmill[]

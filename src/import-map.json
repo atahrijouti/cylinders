@@ -1,0 +1,6 @@
+{
+  "unbundle": "./node_modules/unbundle/dist/client/index.js",
+  "three": "./node_modules/three/build/three.module.min.js",
+  "three.core": "./node_modules/three/build/three.core.min.js",
+  "three/addons/": "./node_modules/three/examples/jsm/"
+}
