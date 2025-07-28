@@ -1,22 +1,24 @@
-import { PerspectiveCamera, Scene, Vector3 } from "three"
+import { Group, PerspectiveCamera, Scene, Vector3 } from "three"
 import { CARPET_LENGTH, HEIGHT, MAX_CYLINDER_COUNT, WIDTH } from "./config.js"
 import { Treadmill } from "./treadmill.js"
 
 export class TreadmillScene extends Scene {
   cylinders: Treadmill[]
+  cylindersGroup: Group
   camera: PerspectiveCamera
   constructor() {
     super()
+
+    this.cylindersGroup = new Group()
+    this.add(this.cylindersGroup)
 
     this.cylinders = Array.from({ length: MAX_CYLINDER_COUNT }, (_, i) => {
       return new Treadmill(i + 2)
     })
 
-    this.cylinders.forEach((treadmill) => this.add(treadmill.translationAnchor))
+    this.cylinders.forEach((treadmill) => this.cylindersGroup.add(treadmill.translationAnchor))
 
     this.camera = new PerspectiveCamera(25, WIDTH / HEIGHT, 0.01, 2000)
-    this.camera.position.set(-29, 12, -14)
-    this.camera.lookAt(this.centerPosition())
   }
 
   centerPosition = () => {

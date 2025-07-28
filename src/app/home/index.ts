@@ -2,9 +2,15 @@ import { type Metadata } from "unbundle"
 
 import { OrbitControls } from "three/addons/controls/OrbitControls.js"
 
-import { WebGLRenderer } from "three"
+import { BoxGeometry, Color, Mesh, MeshBasicMaterial, Vector3, WebGLRenderer } from "three"
 import { HEIGHT, WIDTH } from "./config.js"
 import { TreadmillScene } from "./scene.js"
+
+declare global {
+  interface Window {
+    treadmillScene: TreadmillScene
+  }
+}
 
 export const metadata: Metadata = {
   title: "Cylinders",
@@ -12,18 +18,31 @@ export const metadata: Metadata = {
 }
 
 export const ready = () => {
-  const treadmillScene = new TreadmillScene()
-
   const renderer = new WebGLRenderer()
   renderer.setSize(WIDTH, HEIGHT)
 
   const root = document.getElementById("root")
   root?.appendChild(renderer.domElement)
 
+  const treadmillScene = new TreadmillScene()
   const controls = new OrbitControls(treadmillScene.camera, renderer.domElement)
+
+  const center = treadmillScene.centerPosition()
+
+  const debugCube = new Mesh(
+    new BoxGeometry(0.3, 0.3, 0.3),
+    new MeshBasicMaterial({ color: Color.NAMES.palevioletred }),
+  )
+  treadmillScene.add(debugCube)
+  debugCube.position.copy(center)
+  debugCube.visible = false
+
+  // TODO: it would be nice for these values to work with any numeber of prisms
+  treadmillScene.camera.position.set(-13.842, 10.6904, -14.2756)
+  controls.target.copy(new Vector3(-2.1386, 1.1914, 4.7775))
   controls.update()
 
-  let lastRenderTime = 0
+  let lastRenderTime = 20
   function animate(timestamp: number) {
     requestAnimationFrame(animate)
 
@@ -36,6 +55,25 @@ export const ready = () => {
   }
 
   requestAnimationFrame(animate)
+
+  window.treadmillScene = treadmillScene
+  window.addEventListener("keyup", (e) => {
+    if (e.key == "s") {
+      console.log("save state")
+      controls.saveState()
+    }
+    if (e.key == "r") {
+      console.log("load state")
+      if (!controls.target0.equals(new Vector3(0, 0, 0))) {
+        controls.reset()
+      }
+    }
+    if (e.key == "d") {
+      console.log("Camera pos", treadmillScene.camera.position)
+      console.log("Camera rotation", treadmillScene.camera.rotation)
+      console.log("Controls target", controls.target)
+    }
+  })
 }
 
 export const content = () => {

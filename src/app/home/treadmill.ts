@@ -56,7 +56,7 @@ export const createCarpet = () => {
   carpet.rotation.set(degToRad(90), degToRad(90), 0)
   carpet.position.set(-0.5, 0, 0)
 
-  Array.from({ length: CARPET_LENGTH }, (_, i) => {
+  Array.from({ length: CARPET_LENGTH - 1 }, (_, i) => {
     const piece = carpet.clone()
     piece.position.set(-0.5 - i, 0, 0)
     group.add(piece)
@@ -95,7 +95,7 @@ export class Treadmill {
     this.mirrorAnchor = this.rotationAnchor.clone()
 
     // turn it upside down and push it the opposite way
-    this.mirrorAnchor.position.x = -CARPET_LENGTH
+    this.mirrorAnchor.position.x = -(CARPET_LENGTH - 1)
     this.mirrorAnchor.scale.y = -1
 
     // the cylinders should appear to be continually tumbling
@@ -110,22 +110,25 @@ export class Treadmill {
 
   update = (dt: number) => {
     const angleSum = (this.segments - 2) * 180
-    const maxAngle = 180 - angleSum / this.segments
+    const maxAngleRad = degToRad(180 - angleSum / this.segments)
+    const deltaAngle = maxAngleRad * dt
+
     if (this.translationAnchor.position.x > -1) {
-      this.translationAnchor.position.x += -1 * dt
-    } else {
-      this.translationAnchor.position.x = 0
+      this.translationAnchor.position.x = Math.max(this.translationAnchor.position.x - dt, -1)
     }
 
-    if (this.mirrorAnchor.rotation.z < degToRad(maxAngle)) {
-      this.mirrorAnchor.rotation.z += degToRad(maxAngle) * dt
+    if (this.rotationAnchor.rotation.z > -maxAngleRad) {
+      this.rotationAnchor.rotation.z = Math.max(
+        this.rotationAnchor.rotation.z - deltaAngle,
+        -maxAngleRad,
+      )
+      this.mirrorAnchor.rotation.z = -this.rotationAnchor.rotation.z
     }
 
-    if (this.rotationAnchor.rotation.z > -degToRad(maxAngle)) {
-      this.rotationAnchor.rotation.z -= degToRad(maxAngle) * dt
-    } else {
-      this.rotationAnchor.rotation.z = 0
+    if (this.rotationAnchor.rotation.z <= -maxAngleRad) {
       this.mirrorAnchor.rotation.z = 0
+      this.rotationAnchor.rotation.z = 0
+      this.translationAnchor.position.x = 0
     }
   }
 }
