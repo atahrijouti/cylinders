@@ -1,5 +1,7 @@
 import { type Metadata } from "unbundle"
 
+import { OrbitControls } from "three/addons/controls/OrbitControls.js"
+
 import { WebGLRenderer } from "three"
 import { HEIGHT, WIDTH } from "./config.js"
 import { TreadmillScene } from "./scene.js"
@@ -18,6 +20,9 @@ export const ready = () => {
   const root = document.getElementById("root")
   root?.appendChild(renderer.domElement)
 
+  const controls = new OrbitControls(treadmillScene.camera, renderer.domElement)
+  controls.update()
+
   let lastRenderTime = 0
   function animate(timestamp: number) {
     requestAnimationFrame(animate)
@@ -26,6 +31,7 @@ export const ready = () => {
     lastRenderTime = timestamp
 
     treadmillScene.update(dt)
+    controls.update()
     renderer.render(treadmillScene, treadmillScene.camera)
   }
 
