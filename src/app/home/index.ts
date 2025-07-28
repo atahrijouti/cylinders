@@ -30,6 +30,8 @@ export const metadata: Metadata = {
 export const ready = () => {
   const canvas = document.getElementById("canvas") as HTMLCanvasElement
 
+  // TODO : Take a look at bloom?
+  // https://github.com/atahrijouti/tumbling-prisms/commit/45bfb15242da688d371f0f480a49d4054d522cd5#diff-e5ea56969a0ea04aca719bdc32537c810df2dfcbe479e254ca53dbc60a89cc83L2-L5
   const renderer = new WebGLRenderer({
     canvas,
     antialias: true,
