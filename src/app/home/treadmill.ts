@@ -12,7 +12,7 @@ import { LineSegments2 } from "three/addons/lines/LineSegments2.js"
 import { LineSegmentsGeometry } from "three/addons/lines/LineSegmentsGeometry.js"
 import {
   CARPET_LENGTH,
-  CYLINDER_SCALE,
+  PRISM_SCALE,
   HEIGHT,
   LINE_COLOR,
   OPAQUE_COLOR,
@@ -22,12 +22,12 @@ import {
 
 const { degToRad } = MathUtils
 
-export const createCylinder = (segments: number) => {
+export const createPrism = (segments: number) => {
   const radius = 0.5 / Math.sin(Math.PI / segments)
 
   // Outer : Glowing lines
-  const cylinder = new CylinderGeometry(radius, radius, CYLINDER_SCALE, segments)
-  const edges = new EdgesGeometry(cylinder)
+  const cylinderGeometry = new CylinderGeometry(radius, radius, PRISM_SCALE, segments)
+  const edges = new EdgesGeometry(cylinderGeometry)
   const lineMaterial = new LineMaterial({
     color: LINE_COLOR,
     linewidth: 2,
@@ -37,7 +37,7 @@ export const createCylinder = (segments: number) => {
 
   // Inner : Opaque inside shape
   const opaqueMaterial = new MeshBasicMaterial({ color: OPAQUE_COLOR })
-  const opaqueInner = new Mesh(cylinder, opaqueMaterial)
+  const opaqueInner = new Mesh(cylinderGeometry, opaqueMaterial)
   opaqueInner.scale.set(OPAQUE_SHAPE_DOWN_SCALE, OPAQUE_SHAPE_DOWN_SCALE, OPAQUE_SHAPE_DOWN_SCALE)
 
   const lineGeometry = new LineSegmentsGeometry()
@@ -51,7 +51,7 @@ export const createCylinder = (segments: number) => {
 
 export const createCarpet = () => {
   const group = new Group()
-  const carpet = createCylinder(2)
+  const carpet = createPrism(2)
 
   carpet.rotation.set(degToRad(90), degToRad(90), 0)
   carpet.position.set(-0.5, 0, 0)
@@ -74,16 +74,16 @@ export class Treadmill {
   constructor(segments: number) {
     // span the star of the show
     this.segments = segments
-    const cylinderMesh = createCylinder(segments)
+    const prismMesh = createPrism(segments)
 
-    // put cylinder on its flat side
+    // put prism on its flat side
     const redressAnchor = new Group()
     const angleSum = (segments - 2) * 180
     const redressAngle = 90 - angleSum / segments / 2
     redressAnchor.rotation.z += degToRad(-redressAngle)
-    redressAnchor.add(cylinderMesh)
+    redressAnchor.add(prismMesh)
 
-    // spread the cylinders along the X axis
+    // spread the prisms along the X axis
     const adjustXAnchor = new Group()
     adjustXAnchor.position.x = -1
     adjustXAnchor.add(redressAnchor)
@@ -91,14 +91,14 @@ export class Treadmill {
     this.rotationAnchor = new Group()
     this.rotationAnchor.add(adjustXAnchor)
 
-    // spawn the mirror image of the cylinder
+    // spawn the mirror image of the prism
     this.mirrorAnchor = this.rotationAnchor.clone()
 
     // turn it upside down and push it the opposite way
     this.mirrorAnchor.position.x = -(CARPET_LENGTH - 1)
     this.mirrorAnchor.scale.y = -1
 
-    // the cylinders should appear to be continually tumbling
+    // the prisms should appear to be continually tumbling
     this.translationAnchor = new Group()
     this.translationAnchor.add(this.rotationAnchor)
     this.translationAnchor.add(this.mirrorAnchor)

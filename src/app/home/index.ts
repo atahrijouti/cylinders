@@ -13,8 +13,8 @@ declare global {
 }
 
 export const metadata: Metadata = {
-  title: "Cylinders",
-  description: "Tumbling cylinders, even when it looks like a triangle",
+  title: "Tumbling Prisms",
+  description: "Tumbling Prisms, forced to forever walk on a treadmill!",
 }
 
 export const ready = () => {
