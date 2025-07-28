@@ -35,4 +35,9 @@ export class TreadmillScene extends Scene {
 
     this.treadmills.forEach((treadmill) => treadmill.setProgress(progress))
   }
+
+  reset = () => {
+    this.time = 0
+    this.treadmills.forEach((treadmill) => treadmill.setProgress(0))
+  }
 }
