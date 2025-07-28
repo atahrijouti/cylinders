@@ -1,4 +1,4 @@
-import { type Metadata } from "unbundle"
+import { html, type Metadata } from "unbundle"
 
 import { OrbitControls } from "three/addons/controls/OrbitControls.js"
 
@@ -18,11 +18,13 @@ export const metadata: Metadata = {
 }
 
 export const ready = () => {
-  const renderer = new WebGLRenderer()
-  renderer.setSize(WIDTH, HEIGHT)
+  const canvas = document.getElementById("canvas") as HTMLCanvasElement
 
-  const root = document.getElementById("root")
-  root?.appendChild(renderer.domElement)
+  const renderer = new WebGLRenderer({
+    canvas,
+    antialias: true,
+  })
+  renderer.setSize(WIDTH, HEIGHT)
 
   const treadmillScene = new TreadmillScene()
   const controls = new OrbitControls(treadmillScene.camera, renderer.domElement)
@@ -77,5 +79,5 @@ export const ready = () => {
 }
 
 export const content = () => {
-  return ""
+  return html`<canvas id="canvas" /> `
 }
