@@ -37,7 +37,7 @@ export const createPrism = (segments: number) => {
 
   // Inner : Opaque inside shape
   const opaqueMaterial = new MeshBasicMaterial({ color: OPAQUE_COLOR })
-  const opaqueInner = new Mesh(cylinderGeometry, opaqueMaterial)
+  const opaqueInner = new Mesh(cylinderGeometry.clone(), opaqueMaterial)
   opaqueInner.scale.set(OPAQUE_SHAPE_DOWN_SCALE, OPAQUE_SHAPE_DOWN_SCALE, OPAQUE_SHAPE_DOWN_SCALE)
 
   const lineGeometry = new LineSegmentsGeometry()
@@ -56,7 +56,7 @@ export const createCarpet = () => {
   carpet.rotation.set(degToRad(90), degToRad(90), 0)
   carpet.position.set(-0.5, 0, 0)
 
-  Array.from({ length: CARPET_LENGTH - 1 }, (_, i) => {
+  Array.from({ length: CARPET_LENGTH }, (_, i) => {
     const piece = carpet.clone()
     piece.position.set(-0.5 - i, 0, 0)
     group.add(piece)
@@ -70,6 +70,7 @@ export class Treadmill {
   rotationAnchor: Group
   mirrorAnchor: Group
   translationAnchor: Group
+  maxAngleRad: number
 
   constructor(segments: number) {
     // span the star of the show
@@ -80,6 +81,9 @@ export class Treadmill {
     const redressAnchor = new Group()
     const angleSum = (segments - 2) * 180
     const redressAngle = 90 - angleSum / segments / 2
+
+    this.maxAngleRad = degToRad(180 - angleSum / this.segments)
+
     redressAnchor.rotation.z += degToRad(-redressAngle)
     redressAnchor.add(prismMesh)
 
@@ -95,40 +99,24 @@ export class Treadmill {
     this.mirrorAnchor = this.rotationAnchor.clone()
 
     // turn it upside down and push it the opposite way
-    this.mirrorAnchor.position.x = -(CARPET_LENGTH - 1)
+    this.mirrorAnchor.position.x = -CARPET_LENGTH
     this.mirrorAnchor.scale.y = -1
 
     // the prisms should appear to be continually tumbling
     this.translationAnchor = new Group()
     this.translationAnchor.add(this.rotationAnchor)
     this.translationAnchor.add(this.mirrorAnchor)
-    this.translationAnchor.position.z = (segments - 2) * 0.5123
+    this.translationAnchor.position.z = (segments - 2) * (0.5 + 1 - OPAQUE_SHAPE_DOWN_SCALE)
 
     const carpet = createCarpet()
     this.translationAnchor.add(carpet)
   }
 
-  update = (dt: number) => {
-    const angleSum = (this.segments - 2) * 180
-    const maxAngleRad = degToRad(180 - angleSum / this.segments)
-    const deltaAngle = maxAngleRad * dt
+  setProgress = (progress: number) => {
+    const angle = -this.maxAngleRad * progress
 
-    if (this.translationAnchor.position.x > -1) {
-      this.translationAnchor.position.x = Math.max(this.translationAnchor.position.x - dt, -1)
-    }
-
-    if (this.rotationAnchor.rotation.z > -maxAngleRad) {
-      this.rotationAnchor.rotation.z = Math.max(
-        this.rotationAnchor.rotation.z - deltaAngle,
-        -maxAngleRad,
-      )
-      this.mirrorAnchor.rotation.z = -this.rotationAnchor.rotation.z
-    }
-
-    if (this.rotationAnchor.rotation.z <= -maxAngleRad) {
-      this.mirrorAnchor.rotation.z = 0
-      this.rotationAnchor.rotation.z = 0
-      this.translationAnchor.position.x = 0
-    }
+    this.rotationAnchor.rotation.z = angle
+    this.mirrorAnchor.rotation.z = -angle
+    this.translationAnchor.position.x = -progress
   }
 }

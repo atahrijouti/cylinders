@@ -59,6 +59,7 @@ export const ready = () => {
   requestAnimationFrame(animate)
 
   window.treadmillScene = treadmillScene
+
   window.addEventListener("keyup", (e) => {
     if (e.key == "s") {
       console.log("save state")
