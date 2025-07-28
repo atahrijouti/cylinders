@@ -40,8 +40,8 @@ export const ready = () => {
   debugCube.visible = false
 
   // TODO: it would be nice for these values to work with any numeber of prisms
-  treadmillScene.camera.position.set(-13.842, 10.6904, -14.2756)
-  controls.target.copy(new Vector3(-2.1386, 1.1914, 4.7775))
+  treadmillScene.camera.position.set(-14.7636, 11.0415, -15.098)
+  controls.target.copy(new Vector3(-2.469487806639386, 1.0630914597854084, 4.916779672742233))
   controls.update()
 
   let lastRenderTime = 20
