@@ -1,5 +1,5 @@
-export const WIDTH = 512
-export const HEIGHT = 512
+export const WIDTH = 800
+export const HEIGHT = 800
 
 export const MAX_CYLINDER_COUNT = 20
 export const CYLINDER_SCALE = 0.5
