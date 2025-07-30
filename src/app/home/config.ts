@@ -1,5 +1,5 @@
-export const WIDTH = 800
-export const HEIGHT = 800
+export const WIDTH = 512
+export const HEIGHT = 512
 
 export const MAX_PRISM_COUNT = 16
 export const PRISM_SCALE = 0.5

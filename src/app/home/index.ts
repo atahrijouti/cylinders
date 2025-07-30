@@ -13,6 +13,45 @@ declare global {
 }
 
 let recording = false
+type RecordFramesProps = {
+  targetFrame: number
+  canvas: HTMLCanvasElement
+  onRender?: () => void
+  onUpdate?: (dt: number) => void
+}
+const recordFrames = ({
+  targetFrame,
+  canvas,
+  onRender,
+  onUpdate,
+}: RecordFramesProps): Promise<void> => {
+  return new Promise<void>((resolve) => {
+    let frame = 0
+
+    function step() {
+      const paddedIndex = `${frame}`.padStart(4, "0")
+      const frameName = `frame_${paddedIndex}.png`
+      console.log(`recording : ${frameName}`)
+
+      if (typeof onRender == "function") onRender()
+
+      downloadCanvasImage(canvas, frameName)
+
+      if (typeof onUpdate == "function") onUpdate(1 / targetFrame)
+      frame++
+
+      if (frame > targetFrame) {
+        console.log(`Finished on frame ${frame}`)
+        resolve()
+        return
+      }
+
+      requestAnimationFrame(step)
+    }
+
+    requestAnimationFrame(step)
+  })
+}
 
 const downloadCanvasImage = (canvas: HTMLCanvasElement, filename: string) => {
   const dataURL = canvas.toDataURL("image/png")
@@ -79,37 +118,6 @@ export const ready = () => {
 
   window.treadmillScene = treadmillScene
 
-  const recordFrames = (targetFrame: number = 60): Promise<void> => {
-    return new Promise<void>((resolve) => {
-      let frame = 0
-
-      function step() {
-        const paddedIndex = `${frame}`.padStart(4, "0")
-        const frameName = `frame_${paddedIndex}.png`
-        console.log(`recording : ${frameName}`)
-
-        renderer.render(treadmillScene, treadmillScene.camera)
-
-        downloadCanvasImage(canvas, frameName)
-
-        treadmillScene.update(1 / targetFrame)
-        controls.update()
-
-        frame++
-
-        if (frame > targetFrame) {
-          console.log(`Finished on frame ${frame}`)
-          resolve()
-          return
-        }
-
-        requestAnimationFrame(step)
-      }
-
-      requestAnimationFrame(step)
-    })
-  }
-
   window.addEventListener("keyup", async (e) => {
     if (e.key == "s") {
       console.log("save state")
@@ -132,7 +140,17 @@ export const ready = () => {
       lastRenderTime = 0
       treadmillScene.reset()
 
-      await recordFrames(30)
+      await recordFrames({
+        canvas,
+        targetFrame: 30,
+        onRender: () => {
+          renderer.render(treadmillScene, treadmillScene.camera)
+        },
+        onUpdate: (dt) => {
+          treadmillScene.update(dt)
+          controls.update()
+        },
+      })
       recording = false
 
       requestAnimationFrame(() => animate(0))
@@ -141,5 +159,5 @@ export const ready = () => {
 }
 
 export const content = () => {
-  return html`<canvas id="canvas" /> `
+  return html`<canvas id="canvas" />`
 }
