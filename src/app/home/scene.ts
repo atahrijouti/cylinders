@@ -30,7 +30,7 @@ export class TreadmillScene extends Scene {
   }
 
   update = (dt: number) => {
-    this.time += dt * 1000
+    this.time += dt
     const progress = (this.time % TUMBLE_DURATION) / TUMBLE_DURATION
 
     this.treadmills.forEach((treadmill) => treadmill.setProgress(progress))

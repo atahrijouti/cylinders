@@ -3,7 +3,7 @@ import { html, type Metadata } from "unbundle"
 import { OrbitControls } from "three/addons/controls/OrbitControls.js"
 
 import { BoxGeometry, Color, Mesh, MeshBasicMaterial, Vector3, WebGLRenderer } from "three"
-import { HEIGHT, TUMBLE_DURATION, WIDTH } from "./config.js"
+import { HEIGHT, WIDTH } from "./config.js"
 import { TreadmillScene } from "./scene.js"
 
 declare global {
@@ -105,7 +105,7 @@ export const ready = () => {
 
     requestAnimationFrame(animate)
 
-    const dt = (timestamp - lastRenderTime) / TUMBLE_DURATION
+    const dt = timestamp - lastRenderTime
 
     lastRenderTime = timestamp
 
@@ -135,7 +135,7 @@ export const ready = () => {
       console.log("Controls target", controls.target)
     }
 
-    if (e.key == "r") {
+    if (e.key == "q") {
       recording = true
       lastRenderTime = 0
       treadmillScene.reset()
