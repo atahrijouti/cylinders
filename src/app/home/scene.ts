@@ -1,12 +1,12 @@
 import { Group, PerspectiveCamera, Scene, Vector3 } from "three"
-import { CARPET_LENGTH, HEIGHT, MAX_PRISM_COUNT, TUMBLE_DURATION, WIDTH } from "./config.js"
+import { CARPET_LENGTH, HEIGHT, MAX_PRISM_COUNT, WIDTH } from "./config.js"
 import { Treadmill } from "./treadmill.js"
 
 export class TreadmillScene extends Scene {
   treadmills: Treadmill[]
   treadmillsContainer: Group
   camera: PerspectiveCamera
-  time = 0
+  progress = 0
   constructor() {
     super()
 
@@ -29,15 +29,13 @@ export class TreadmillScene extends Scene {
     return new Vector3(-CARPET_LENGTH / 2, 0, middleTreadmill.translationAnchor.position.z)
   }
 
-  update = (dt: number) => {
-    this.time += dt
-    const progress = (this.time % TUMBLE_DURATION) / TUMBLE_DURATION
-
+  update = (progress: number) => {
+    this.progress = progress
     this.treadmills.forEach((treadmill) => treadmill.setProgress(progress))
   }
 
   reset = () => {
-    this.time = 0
+    this.progress = 0
     this.treadmills.forEach((treadmill) => treadmill.setProgress(0))
   }
 }

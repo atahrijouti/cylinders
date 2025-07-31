@@ -3,8 +3,9 @@ import { html, type Metadata } from "unbundle"
 import { OrbitControls } from "three/addons/controls/OrbitControls.js"
 
 import { BoxGeometry, Color, Mesh, MeshBasicMaterial, Vector3, WebGLRenderer } from "three"
-import { HEIGHT, WIDTH } from "./config.js"
+import { HEIGHT, TUMBLE_DURATION, WIDTH } from "./config.js"
 import { TreadmillScene } from "./scene.js"
+import { mkNextAnimationFrame } from "./utils.js"
 
 declare global {
   interface Window {
@@ -12,12 +13,12 @@ declare global {
   }
 }
 
-let recording = false
+let running = true
 type RecordFramesProps = {
   targetFrame: number
   canvas: HTMLCanvasElement
   onRender?: () => void
-  onUpdate?: (dt: number) => void
+  onUpdate?: () => void
 }
 const recordFrames = ({
   targetFrame,
@@ -37,7 +38,7 @@ const recordFrames = ({
 
       downloadCanvasImage(canvas, frameName)
 
-      if (typeof onUpdate == "function") onUpdate(1 / targetFrame)
+      if (typeof onUpdate == "function") onUpdate()
       frame++
 
       if (frame > targetFrame) {
@@ -97,28 +98,41 @@ export const ready = () => {
   controls.update()
 
   let lastRenderTime = 0
-  function animate(timestamp: number) {
-    if (recording) {
-      console.log("animate(): a recording is happening, skipping normal animation")
+  let animationTime = 0
+  function animate(now = new Date().getTime()) {
+    if (!running) {
       return
     }
 
-    requestAnimationFrame(animate)
+    nextAnimationFrame()
 
-    const dt = timestamp - lastRenderTime
+    const dt = now - lastRenderTime
+    animationTime += dt
 
-    lastRenderTime = timestamp
+    const progress = (animationTime % TUMBLE_DURATION) / TUMBLE_DURATION
+    lastRenderTime = now
 
-    treadmillScene.update(dt)
+    treadmillScene.update(progress)
     controls.update()
     renderer.render(treadmillScene, treadmillScene.camera)
   }
 
-  requestAnimationFrame(animate)
+  const nextAnimationFrame = mkNextAnimationFrame(animate)
+
+  nextAnimationFrame()
 
   window.treadmillScene = treadmillScene
 
   window.addEventListener("keyup", async (e) => {
+    if (e.key == "p") {
+      if (running) {
+        running = false
+      } else {
+        running = true
+        lastRenderTime = new Date().getTime()
+        nextAnimationFrame()
+      }
+    }
     if (e.key == "s") {
       console.log("save state")
       controls.saveState()
@@ -136,24 +150,30 @@ export const ready = () => {
     }
 
     if (e.key == "q") {
-      recording = true
-      lastRenderTime = 0
-      treadmillScene.reset()
+      if (running) {
+        running = false
+        lastRenderTime = new Date().getTime()
+        treadmillScene.reset()
 
-      await recordFrames({
-        canvas,
-        targetFrame: 30,
-        onRender: () => {
-          renderer.render(treadmillScene, treadmillScene.camera)
-        },
-        onUpdate: (dt) => {
-          treadmillScene.update(dt)
-          controls.update()
-        },
-      })
-      recording = false
+        let progress = 0
+        const TARGET_FRAME = 30
+        await recordFrames({
+          canvas,
+          targetFrame: TARGET_FRAME,
+          onRender: () => {
+            renderer.render(treadmillScene, treadmillScene.camera)
+          },
+          onUpdate: () => {
+            progress += 1 / TARGET_FRAME
+            treadmillScene.update(progress)
+            controls.update()
+          },
+        })
 
-      requestAnimationFrame(() => animate(0))
+        running = true
+
+        animate()
+      }
     }
   })
 }
