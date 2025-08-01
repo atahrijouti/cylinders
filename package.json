@@ -7,6 +7,9 @@
     "build": "bun run unbundle-build",
     "build:prod": "NODE_ENV=production bun run unbundle-build"
   },
+  "trustedDependencies": [
+    "unbundle"
+  ],
   "devDependencies": {
     "@eslint/js": "^9.32.0",
     "@types/bun": "^1.2.19",
